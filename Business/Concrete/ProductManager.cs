@@ -1,27 +1,23 @@
 ﻿using Business.Abstract;
-using Business.CCS;
 using Business.Constants;
 using Business.ValidationRules.FluentValidation;
 using Core.Aspects.Autofac.Validation;
-using Core.CrossCuttingConcerns.Validation;
 using Core.Utilities.Business;
 using Core.Utilities.Results;
 using DataAccess.Abstract;
-using DataAccess.Concrete.InMemory;
 using Entities.Concrete;
 using Entities.DTOs;
-using FluentValidation;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
+using Business.BusinessAspects.Autofac;
 
 namespace Business.Concrete
 {
     public class ProductManager : IProductService
     {
-        IProductDal _productDal;
-        ICategoryService _categoryService;
+        private IProductDal _productDal;
+        private ICategoryService _categoryService;
 
         public ProductManager(IProductDal productDal,ICategoryService categoryService)
         {
@@ -29,6 +25,7 @@ namespace Business.Concrete
             _categoryService = categoryService;
         }
 
+        [SecuredOperation("admin,editor,product.add")]
         [ValidationAspect(typeof(ProductValidator))]
         public IResult Add(Product product)
         {
@@ -80,7 +77,7 @@ namespace Business.Concrete
         {
             // Bir kategoride en fazla 10 product olmalidir.
             var result = _productDal.GetAll(p => p.CategoryId == product.CategoryId).Count;
-            if (result >= 10)
+            if (result >= 15)
             {
                 return new ErrorResult(Messages.ProductCountOfCategoryError);
             }
@@ -93,7 +90,7 @@ namespace Business.Concrete
         {
             //Select count(*) from Products where categoryId=1
             var result = _productDal.GetAll(p => p.CategoryId == categoryId).Count;
-            if (result >= 15)
+            if (result >= 30)
                 return new ErrorResult(Messages.ProductCountOfCategoryError);
 
             return new SuccessResult();
